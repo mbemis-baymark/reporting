@@ -1,0 +1,13 @@
+these scripts require that they be run from a server with the following:
+1. White listed for accessing ExponentHR from the servers public ip address
+2. White listed for accessing Active directory
+3. the following config settings in a file called "../.createUsersConfig.php"
+<?php
+$u = 'someusernamewithadminaccess@ad.baymarkhealth.com';
+$p = '!@#QWE-0099na';
+$h = 'domain controller ip :10.100.10.7';
+$cid = 'exponent baymark customer id like 00429';
+$auth = '9d074df731234565f234bcea451f3056e9a7772';
+$ep = 'https://www.exponenthr.com/api/Employees.asmx';
+?>
+
