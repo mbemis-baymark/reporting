@@ -63,11 +63,12 @@ $hierarchy = buildHierarchy($employees);
 $manager = 'crothenbuhler@baymark.com';
 $manager = strtolower($manager);
 $emails = [];
+	print_r($hierarchy);
 if (isset($hierarchy[$manager])) {
-    $emails = gatherEmails($hierarchy[$manager], 'Mahajan');
+	$emails = gatherEmails($hierarchy[$manager], 'Mahajan');
+} else {
+	echo "$manager not found\n";
 }
-
-header('Content-Type: text/plain');
 echo implode("\n", $emails);
 
 ?>
