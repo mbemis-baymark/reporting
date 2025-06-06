@@ -55,7 +55,7 @@ function buildHierarchy($employees, $group_presidents) {
         if (!empty($employee['supervisor_email'])) {
             $supervisor_email = strtolower(trim($employee['supervisor_email']));
             if (isset($lookup[$supervisor_email])) {
-                $lookup[$supervisor_email]['subordinates'][] = &$employee;
+                $lookup[$supervisor_email]['subordinates'][$email] = &$employee;
             }
         }
     }
@@ -63,9 +63,9 @@ function buildHierarchy($employees, $group_presidents) {
     return $tree;
 }
 
-function countEmployees(&$node) {
+function countEmployees($node) {
     $count = 0;
-    foreach ($node['subordinates'] as &$subordinate) {
+    foreach ($node['subordinates'] as $subordinate) {
         $count += 1 + countEmployees($subordinate);
     }
     return $count;
@@ -81,7 +81,7 @@ function getTitlesByLevel(&$node, $level = 1, &$titlesByLevel = []) {
     }
     $titlesByLevel[$level][$node['job_title']]++;
     
-    foreach ($node['subordinates'] as &$subordinate) {
+    foreach ($node['subordinates'] as $subordinate) {
         getTitlesByLevel($subordinate, $level + 1, $titlesByLevel);
     }
     
