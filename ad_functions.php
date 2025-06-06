@@ -1,5 +1,44 @@
 <?php
 include_once '../.createUsersConfig.php';
+
+// Polyfill for paged results functions when the LDAP extension lacks them.
+if (!function_exists('ldap_control_paged_result')) {
+    /**
+     * Emulates ldap_control_paged_result using ldap_set_option.
+     */
+    function ldap_control_paged_result($link, $pageSize, $isCritical = false, $cookie = '')
+    {
+        $ctrl = [
+            [
+                'oid' => LDAP_CONTROL_PAGEDRESULTS,
+                'iscritical' => $isCritical,
+                'value' => [
+                    'size'   => $pageSize,
+                    'cookie' => $cookie,
+                ],
+            ],
+        ];
+
+        return ldap_set_option($link, LDAP_OPT_SERVER_CONTROLS, $ctrl);
+    }
+
+    /**
+     * Retrieves the cookie from a paged search response.
+     */
+    function ldap_control_paged_result_response($link, $result, &$cookie)
+    {
+        $controls = [];
+        ldap_parse_result($link, $result, $errcode, $matcheddn, $errmsg, $referrals, $controls);
+
+        if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+            $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+        } else {
+            $cookie = '';
+        }
+
+        return true;
+    }
+}
 function ad_bind() {
 	global $h;
 	global $p;
