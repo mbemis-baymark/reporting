@@ -16,14 +16,33 @@ function ad_bind() {
 	return false;
 }
 function fetchADUser($email, $lconn) {
-	$eparts = preg_split('/[@,\.]/', $email);
-	$ldap_base_dn = 'OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
-	$filter = "cn=".$eparts[0].'*';
-	$sr = ldap_search($lconn, $ldap_base_dn, $filter);
-	$lres = ldap_get_entries($lconn, $sr);
-	//make object to return
-	$tmp = $lres;
-	return $tmp;
+        $eparts = preg_split('/[@,\.]/', $email);
+        $ldap_base_dn = 'OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
+        $filter = "cn=".$eparts[0].'*';
+        $sr = ldap_search($lconn, $ldap_base_dn, $filter);
+        $lres = ldap_get_entries($lconn, $sr);
+        //make object to return
+        $tmp = $lres;
+        return $tmp;
+}
+
+function ldap_paged_search($lconn, $base_dn, $filter, $attributes = array(), $pageSize = 1000) {
+        $cookie = '';
+        $result = array('count' => 0);
+        do {
+                ldap_control_paged_result($lconn, $pageSize, true, $cookie);
+                $search = ldap_search($lconn, $base_dn, $filter, $attributes);
+                if ($search === false) {
+                        break;
+                }
+                $entries = ldap_get_entries($lconn, $search);
+                for ($i = 0; $i < $entries['count']; $i++) {
+                        $result[$result['count']] = $entries[$i];
+                        $result['count']++;
+                }
+                ldap_control_paged_result_response($lconn, $search, $cookie);
+        } while ($cookie !== null && $cookie != '');
+        return $result;
 }
 function fetchAllAdGroups($lconn) {
 	$result = ldap_read($lconn, '', '(objectClass=*)', ['supportedControl']);
@@ -94,11 +113,10 @@ function fetchAllAdUsers($lconn) {
 	//active users base dn
 	$ldap_base_dn = 'OU=Users,OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
 	$start = ord('a');
-	for($i=0; $i<26; $i++) {
-		$search_filter = 'displayName='.chr($start + $i).'*';
-		$r = ldap_search($lconn, $ldap_base_dn, $search_filter);
-		$lres = ldap_get_entries($lconn, $r);
-		$count = $lres['count'];
+        for($i=0; $i<26; $i++) {
+                $search_filter = 'displayName='.chr($start + $i).'*';
+                $lres = ldap_paged_search($lconn, $ldap_base_dn, $search_filter);
+                $count = $lres['count'];
 		for($j=0; $j < $count; $j++) {
 			$o = $lres[$j];
 			$tmp = array();
@@ -132,11 +150,10 @@ function fetchAllAdUsers($lconn) {
 	//Terminated users
 	$ldap_base_dn = 'OU=Terminated Users with Active Email,OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
 	$start = ord('a');
-	for($i=0; $i<26; $i++) {
-		$search_filter = 'displayName='.chr($start + $i).'*';
-		$r = ldap_search($lconn, $ldap_base_dn, $search_filter);
-		$lres = ldap_get_entries($lconn, $r);
-		$count = $lres['count'];
+        for($i=0; $i<26; $i++) {
+                $search_filter = 'displayName='.chr($start + $i).'*';
+                $lres = ldap_paged_search($lconn, $ldap_base_dn, $search_filter);
+                $count = $lres['count'];
 		for($j=0; $j < $count; $j++) {
 			$o = $lres[$j];
 			$tmp = array();
@@ -170,11 +187,10 @@ function fetchAllAdUsers($lconn) {
 	//disabled users
 	$ldap_base_dn = 'OU=Disabled,OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
 	$start = ord('a');
-	for($i=0; $i<26; $i++) {
-		$search_filter = 'displayName='.chr($start + $i).'*';
-		$r = ldap_search($lconn, $ldap_base_dn, $search_filter);
-		$lres = ldap_get_entries($lconn, $r);
-		$count = $lres['count'];
+        for($i=0; $i<26; $i++) {
+                $search_filter = 'displayName='.chr($start + $i).'*';
+                $lres = ldap_paged_search($lconn, $ldap_base_dn, $search_filter);
+                $count = $lres['count'];
 		for($j=0; $j < $count; $j++) {
 			$o = $lres[$j];
 			$tmp = array();
@@ -230,11 +246,10 @@ function getDisabledUsers() {
 	$lconn = ad_bind();
 	$ldap_base_dn = '';
 	$start = ord('a');
-	for($i=0; $i<26; $i++) {
-		$search_filter = 'displayName='.chr($start + $i).'*';
-		$r = ldap_search($lconn, $ldap_base_dn, $search_filter);
-		$lres = ldap_get_entries($lconn, $r);
-		$count = $lres['count'];
+        for($i=0; $i<26; $i++) {
+                $search_filter = 'displayName='.chr($start + $i).'*';
+                $lres = ldap_paged_search($lconn, $ldap_base_dn, $search_filter);
+                $count = $lres['count'];
 		for($j=0; $j < $count; $j++) {
 			$o = $lres[$j];
 			$e = isset($o['userprincipalname']) && isset($o['userprincipalname'][0]) ? strtolower($o['userprincipalname'][0]) : 'missing email item'.$j."-".chr($start+$i);
@@ -248,11 +263,10 @@ function getTerminatedUsers() {
 	$lconn = ad_bind();
 	$ldap_base_dn = 'OU=Terminated Users with Active Email,OU=BMHS,DC=ad,DC=baymarkhealth,DC=com';
 	$start = ord('a');
-	for($i=0; $i<26; $i++) {
-		$search_filter = 'displayName='.chr($start + $i).'*';
-		$r = ldap_search($lconn, $ldap_base_dn, $search_filter);
-		$lres = ldap_get_entries($lconn, $r);
-		$count = $lres['count'];
+        for($i=0; $i<26; $i++) {
+                $search_filter = 'displayName='.chr($start + $i).'*';
+                $lres = ldap_paged_search($lconn, $ldap_base_dn, $search_filter);
+                $count = $lres['count'];
 		for($j=0; $j < $count; $j++) {
 			$o = $lres[$j];
 			$e = isset($o['userprincipalname']) && isset($o['userprincipalname'][0]) ? strtolower($o['userprincipalname'][0]) : 'missing email item'.$j."-".chr($start+$i);
