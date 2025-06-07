@@ -3,11 +3,18 @@ these scripts require that they be run from a server with the following:
 2. White listed for accessing Active directory
 3. the following config settings in a file called "../.createUsersConfig.php"
 <?php
-$u = 'someusernamewithadminaccess@ad.baymarkhealth.com';
-$p = '!@#QWE-0099na';
+$u = 'your_admin_username@ad.baymarkhealth.com';
+$p = getenv('AD_ADMIN_PASSWORD'); // store outside the repo
 $h = 'domain controller ip :10.100.10.7';
 $cid = 'exponent baymark customer id like 00429';
 $auth = '9d074df731234565f234bcea451f3056e9a7772';
 $ep = 'https://www.exponenthr.com/api/Employees.asmx';
 ?>
+
+### Data Files
+
+Synthetic data used for testing is located in `tests/allstaff.csv`. Any files
+containing real employee information should not be committed to the repository.
+The previous `hierarchy.obj` file was removed for this reason and is now listed
+in `.gitignore`.
 
