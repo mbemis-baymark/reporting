@@ -76,7 +76,7 @@ function gatherEmails($node, $divisionMatch, &$emails = []) {
     return $emails;
 }
 
-$filename = 'allstaff.csv';
+$filename = __DIR__ . '/tests/allstaff.csv';
 $employees = readCSV($filename);
 $hierarchy = buildHierarchy($employees);
 $manager = 'crothenbuhler@baymark.com';
