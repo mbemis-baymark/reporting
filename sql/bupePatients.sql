@@ -11,6 +11,6 @@ JOIN tblclinic c
     ON o.global_site_id = c.global_site_id
 WHERE
     o.med_type LIKE 'b%'
-    AND o.order_date >= '202i4-04-01'
+    AND o.order_date >= '2024-04-01'
     AND o.order_date < '2026-01-01';
 
